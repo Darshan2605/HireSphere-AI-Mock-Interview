@@ -52,8 +52,8 @@ export default function Page() {
                 </svg>
               </a>
 
-              <h1 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
-                Welcome to AI Interview Moker 🦑
+              <h1 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl text-center">
+                Welcome to HireSphere AI Interview 🦑
               </h1>
 
               
