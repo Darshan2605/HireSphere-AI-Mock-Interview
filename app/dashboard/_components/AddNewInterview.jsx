@@ -42,37 +42,45 @@ function AddNewInterview() {
     try {
       const result = await chatSession.sendMessage(inputPrompt);
       const responseText = await result.response.text();
-      console.log("🚀 ~ file: AddNewInterview.jsx:41 ~ onSubmit ~ responseText:", responseText)
+      console.log("🚀 ~ file: AddNewInterview.jsx:41 ~ onSubmit ~ responseText:", responseText);
+
+      // Extract JSON array from the response
       const jsonMatch = responseText.match(/\[.*?\]/s);
       if (!jsonMatch) {
         throw new Error("No valid JSON array found in the response");
       }
-  
+
       const jsonResponsePart = jsonMatch[0];
       console.log("🚀 ~ file: AddNewInterview.jsx:43 ~ onSubmit ~ jsonResponsePart:", jsonResponsePart);
-  
-      if (jsonResponsePart) {
+
+      // Validate and parse the JSON response
+      try {
         const mockResponse = JSON.parse(jsonResponsePart.trim());
-        console.log("🚀 ~ file: AddNewInterview.jsx:45 ~ onSubmit ~ mockResponse:", mockResponse)
+        console.log("🚀 ~ file: AddNewInterview.jsx:45 ~ onSubmit ~ mockResponse:", mockResponse);
+
         setJsonResponse(mockResponse);
         const jsonString = JSON.stringify(mockResponse);
-        const res = await db.insert(MockInterview)
-          .values({
-            mockId: uuidv4(),
-            jsonMockResp: jsonString,
-            jobPosition: jobPosition,
-            jobDesc: jobDescription,
-            jobExperience: jobExperience,
-            createdBy: user?.primaryEmailAddress?.emailAddress,
-            createdAt: moment().format('DD-MM-YYYY'),
-          }).returning({ mockId: MockInterview.mockId });
-          setLoading(false);
-          router.push(`dashboard/interview/${res[0]?.mockId}`);
-      } else {
-        console.error("Error: Unable to extract JSON response");
+
+        // Insert the mock interview into the database
+        const res = await db.insert(MockInterview).values({
+          mockId: uuidv4(),
+          jsonMockResp: jsonString,
+          jobPosition: jobPosition,
+          jobDesc: jobDescription,
+          jobExperience: jobExperience,
+          createdBy: user?.primaryEmailAddress?.emailAddress,
+          createdAt: moment().format("DD-MM-YYYY"),
+        }).returning({ mockId: MockInterview.mockId });
+
+        setLoading(false);
+        router.push(`dashboard/interview/${res[0]?.mockId}`);
+      } catch (jsonError) {
+        console.error("Error parsing JSON response:", jsonError);
+        alert("The AI response contains invalid JSON. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching interview questions:", error);
+      alert("An error occurred while generating interview questions. Please try again.");
     } finally {
       setLoading(false);
     }

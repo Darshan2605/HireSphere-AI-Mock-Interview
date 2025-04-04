@@ -8,7 +8,8 @@ export const MockInterview=pgTable('MockInterview',{
     jobExperience:varchar('jobExperience').notNull(),
     createdBy:varchar('createdBy').notNull(),
     createdAt:varchar('createdAt'),
-    mockId:varchar('mockId').notNull()
+    mockId:varchar('mockId').notNull(),
+    capturedImage: text('capturedImage') // New column for storing the image
 })
 
 export const UserAnswer = pgTable('userAnswer',{
@@ -20,5 +21,8 @@ export const UserAnswer = pgTable('userAnswer',{
     feedback:text('feedback'),
     rating:varchar('rating'),
     userEmail:varchar('userEmail'),
-    createdAt:varchar('createdAt')
+    createdAt:varchar('createdAt'),
+    behavioralRating: varchar('behavioralRating'), // New field for behavioral rating
+    behavioralFeedback: text('behavioralFeedback'), // New field for behavioral feedback
+    
 })
