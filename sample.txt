@@ -1,0 +1,115 @@
+"use client";
+
+import React, { useEffect, useRef } from "react";
+import * as poseDetection from "@tensorflow-models/pose-detection";
+import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-backend-webgl";
+
+const EyePostureAnalysis = ({ setFeedback }) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    let detector;
+
+    const setupDetector = async () => {
+      // Set TensorFlow.js backend and wait for it to be ready
+      await tf.setBackend("webgl"); // Use "webgl" as the backend
+      await tf.ready();
+
+      // Load the Pose Detection model
+      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+        modelType: poseDetection.movenet.modelType.MULTIPOSE_LIGHTNING,
+      });
+
+      // Start the video stream
+      const video = videoRef.current;
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      video.play();
+
+      const detectPoses = async () => {
+        if (detector && video.readyState === 4) {
+          const poses = await detector.estimatePoses(video, { maxPoses: 5 });
+
+          let eyeContact = "Analyzing...";
+          let posture = "Analyzing...";
+          let peopleCount = poses.length;
+
+          poses.forEach((pose) => {
+            // Analyze eye contact
+            const leftEye = pose.keypoints.find((kp) => kp.name === "left_eye");
+            const rightEye = pose.keypoints.find((kp) => kp.name === "right_eye");
+            const nose = pose.keypoints.find((kp) => kp.name === "nose");
+
+            if (leftEye && rightEye && nose) {
+              const eyeCenterX = (leftEye.x + rightEye.x) / 2;
+              const eyeCenterY = (leftEye.y + rightEye.y) / 2;
+
+              const distanceToNose = Math.sqrt(
+                Math.pow(eyeCenterX - nose.x, 2) + Math.pow(eyeCenterY - nose.y, 2)
+              );
+
+              if (distanceToNose < 50) {
+                eyeContact = "Maintaining Eye Contact";
+              } else {
+                eyeContact = "Looking Away";
+              }
+            }
+
+            // Analyze posture
+            const leftShoulder = pose.keypoints.find((kp) => kp.name === "left_shoulder");
+            const rightShoulder = pose.keypoints.find((kp) => kp.name === "right_shoulder");
+
+            if (leftShoulder && rightShoulder) {
+              const shoulderAngle = Math.abs(leftShoulder.y - rightShoulder.y);
+              if (shoulderAngle > 20) {
+                posture = "Adjust Your Posture";
+              } else {
+                posture = "Good Posture";
+              }
+            }
+          });
+
+          // Update feedback with confidence scores
+          const confidenceScores = poses.map((pose) =>
+            pose.keypoints.map((kp) => kp.score).reduce((a, b) => a + b, 0) / pose.keypoints.length
+          );
+
+          setFeedback({
+            eyeContact,
+            posture,
+            peopleCount,
+            confidence: confidenceScores.length > 0 ? confidenceScores[0].toFixed(2) : "N/A",
+          });
+        }
+
+        requestAnimationFrame(detectPoses);
+      };
+
+      detectPoses();
+    };
+
+    setupDetector();
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+    };
+  }, [setFeedback]);
+
+  return (
+    <div className="relative">
+      {/* Camera window */}
+      <video ref={videoRef} className="w-full h-auto rounded-lg" autoPlay muted playsInline></video>
+    </div>
+  );
+};
+
+export default EyePostureAnalysis;
+
+
+
+
+

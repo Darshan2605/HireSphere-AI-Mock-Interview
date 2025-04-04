@@ -1,0 +1,162 @@
+"use client";
+
+import React, { useEffect, useRef } from "react";
+import * as poseDetection from "@tensorflow-models/pose-detection";
+import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
+import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-backend-webgl";
+
+const EyePostureAnalysis = ({ setFeedback }) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    let detector;
+    let faceDetector;
+    let blinkCount = 0;
+    let elapsedTime = 0;
+
+    const setupDetector = async () => {
+      await tf.setBackend("webgl");
+      await tf.ready();
+
+      // Load the Pose Detection model
+      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+        modelType: poseDetection.movenet.modelType.MULTIPOSE_LIGHTNING,
+      });
+
+      // Load Face Landmarks Detection model with MediaPipe backend
+      faceDetector = await faceLandmarksDetection.createDetector(
+        faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+        {
+          runtime: "mediapipe",
+          solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh",
+        }
+      );
+
+      // Start the video stream
+      const video = videoRef.current;
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      video.play();
+
+      const detectPoses = async () => {
+        if (detector && video.readyState === 4) {
+          const poses = await detector.estimatePoses(video, { maxPoses: 5 });
+          const faces = await faceDetector.estimateFaces(video);
+
+          let eyeContact = "Analyzing...";
+          let posture = "Analyzing...";
+          let stressLevel = "Analyzing...";
+          let blinkRate = "Analyzing...";
+          let peopleCount = poses.length;
+
+          poses.forEach((pose) => {
+            // Head Pose Estimation
+            const leftEar = pose.keypoints.find((kp) => kp.name === "left_ear");
+            const rightEar = pose.keypoints.find((kp) => kp.name === "right_ear");
+            const nose = pose.keypoints.find((kp) => kp.name === "nose");
+
+            if (leftEar && rightEar && nose) {
+              const headTilt = Math.abs(leftEar.y - rightEar.y);
+              const headTurn = Math.abs(nose.x - (leftEar.x + rightEar.x) / 2);
+
+              if (headTilt > 20) {
+                posture = "Head Tilted";
+              } else if (headTurn > 30) {
+                posture = "Head Turned";
+              } else {
+                posture = "Head Aligned";
+              }
+            }
+
+            // Distraction Detection
+            const leftEye = pose.keypoints.find((kp) => kp.name === "left_eye");
+            const rightEye = pose.keypoints.find((kp) => kp.name === "right_eye");
+
+            if (leftEye && rightEye && nose) {
+              const eyeCenterX = (leftEye.x + rightEye.x) / 2;
+              const eyeCenterY = (leftEye.y + rightEye.y) / 2;
+
+              const distanceToNose = Math.sqrt(
+                Math.pow(eyeCenterX - nose.x, 2) + Math.pow(eyeCenterY - nose.y, 2)
+              );
+
+              if (distanceToNose > 50) {
+                eyeContact = "Looking Away (Distracted)";
+              } else {
+                eyeContact = "Maintaining Eye Contact";
+              }
+            }
+          });
+
+          if (faces.length > 0) {
+            const face = faces[0];
+
+            // Stress Level Detection
+            const leftEyebrow = face.keypoints.find((kp) => kp.name === "left_eyebrow");
+            const rightEyebrow = face.keypoints.find((kp) => kp.name === "right_eyebrow");
+            const noseBridge = face.keypoints.find((kp) => kp.name === "nose");
+
+            if (leftEyebrow && rightEyebrow && noseBridge) {
+              const leftBrowDistance = Math.abs(leftEyebrow.y - noseBridge.y);
+              const rightBrowDistance = Math.abs(rightEyebrow.y - noseBridge.y);
+
+              if (leftBrowDistance < 10 && rightBrowDistance < 10) {
+                stressLevel = "High Stress (Furrowed Brows)";
+              } else {
+                stressLevel = "Low Stress";
+              }
+            }
+
+            // Eye Blink Rate Analysis
+            const leftEyeUpper = face.keypoints.find((kp) => kp.name === "left_eye_upper");
+            const leftEyeLower = face.keypoints.find((kp) => kp.name === "left_eye_lower");
+            const rightEyeUpper = face.keypoints.find((kp) => kp.name === "right_eye_upper");
+            const rightEyeLower = face.keypoints.find((kp) => kp.name === "right_eye_lower");
+
+            if (leftEyeUpper && leftEyeLower && rightEyeUpper && rightEyeLower) {
+              const leftEyeOpen = Math.abs(leftEyeUpper.y - leftEyeLower.y);
+              const rightEyeOpen = Math.abs(rightEyeUpper.y - rightEyeLower.y);
+
+              if (leftEyeOpen < 5 && rightEyeOpen < 5) {
+                blinkCount++;
+              }
+
+              const calculatedBlinkRate = blinkCount / (elapsedTime / 60); // Blinks per minute
+              blinkRate = calculatedBlinkRate > 20 ? "High Blink Rate (Nervous)" : "Normal Blink Rate";
+            }
+          }
+
+          setFeedback({
+            eyeContact,
+            posture,
+            peopleCount,
+            stressLevel,
+            blinkRate,
+          });
+        }
+
+        requestAnimationFrame(detectPoses);
+      };
+
+      detectPoses();
+    };
+
+    setupDetector();
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+    };
+  }, [setFeedback]);
+
+  return (
+    <div className="relative">
+      <video ref={videoRef} className="w-full h-auto rounded-lg" autoPlay muted playsInline></video>
+    </div>
+  );
+};
+
+export default EyePostureAnalysis;
