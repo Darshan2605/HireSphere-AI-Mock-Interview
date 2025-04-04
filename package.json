@@ -39,7 +39,7 @@
     "next-themes": "^0.3.0",
     "nodemailer": "^6.10.0",
     "react": "^18.3.1",
-    "react-d3-speedometer": "^3.1.1",
+    "react-d3-speedometer": "^3.0.0-rc.0",
     "react-dom": "^18.3.1",
     "react-hook-speech-to-text": "^0.8.0",
     "react-webcam": "^7.2.0",
