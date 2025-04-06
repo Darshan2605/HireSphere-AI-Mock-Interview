@@ -1,39 +1,27 @@
 import nodemailer from "nodemailer";
-import fs from "fs";
-import path from "path";
 
 export async function POST(req) {
   try {
-    const { to, subject, html, mockId } = await req.json();
+    const { to, subject, html, mockId, pdfBufferBase64 } = await req.json();
 
-    if (!mockId) {
-      console.error("❌ Error: Mock ID is missing!");
-      return Response.json({ success: false, message: "Mock ID is required!" });
+    if (!mockId || !pdfBufferBase64) {
+      return Response.json({ success: false, message: "Mock ID or PDF buffer missing!" });
     }
 
-    // ✅ Construct the correct PDF filename
-    const pdfFileName = `Interview_Feedback_Report_${mockId}.pdf`;
-    const pdfPath = path.join(process.cwd(), "public", pdfFileName);
+    // Convert base64 back to buffer
+    const pdfBuffer = Buffer.from(pdfBufferBase64, "base64");
+    const fileName = `Interview_Feedback_Report_${mockId}.pdf`;
 
-    // ✅ Check if the file exists
-    if (!fs.existsSync(pdfPath)) {
-      console.error(`❌ Error: File ${pdfPath} not found!`);
-      return Response.json({ success: false, message: `PDF file ${pdfFileName} not found!` });
-    }
-
-    // ✅ Read the PDF file
-    const pdfBuffer = fs.readFileSync(pdfPath);
-
-    // ✅ Setup email transporter
+    // Email config
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // ⚠️ Ensure you're using an App Password for Gmail
+        pass: process.env.EMAIL_PASS, // Use App Password
       },
     });
 
-    // ✅ Send email with attachment
+    // Send email
     await transporter.sendMail({
       from: `"HireSphere" <${process.env.EMAIL_USER}>`,
       to,
@@ -41,7 +29,7 @@ export async function POST(req) {
       html,
       attachments: [
         {
-          filename: pdfFileName,
+          filename: fileName,
           content: pdfBuffer,
           contentType: "application/pdf",
         },
@@ -52,7 +40,7 @@ export async function POST(req) {
     return Response.json({ success: true, message: "Email sent successfully!" });
 
   } catch (error) {
-    console.error("❌ Email Error:", error);
+    console.error("❌ Email Send Error:", error);
     return Response.json({ success: false, message: "Failed to send email", error: error.message });
   }
 }

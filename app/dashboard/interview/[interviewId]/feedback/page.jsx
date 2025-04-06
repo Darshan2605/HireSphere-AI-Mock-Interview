@@ -77,7 +77,7 @@ const Feedback = ({ params }) => {
   };
 
   // ✅ Generate and Download PDF Report
-  const downloadPDF = (userDetails) => {
+  const downloadPDF = async (userDetails) => {
     if (!userDetails || !userDetails.mockId) {
       alert("Mock ID not found!");
       return;
@@ -85,89 +85,86 @@ const Feedback = ({ params }) => {
   
     const reportElement = document.getElementById("feedback-report");
   
-    html2canvas(reportElement, { scale: 3 }).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
+    const canvas = await html2canvas(reportElement, { scale: 3 });
+    const imgData = canvas.toDataURL("image/png");
   
-      const pdfWidth = 300;
-      const pdfHeight = 297;
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+    const pdfWidth = 300;
+    const pdfHeight = 297;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
   
-      const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight], true);
+    const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight], true);
+    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+    heightLeft -= pdfHeight;
+  
+    while (heightLeft > 0) {
+      position -= pdfHeight;
+      pdf.addPage();
       pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
       heightLeft -= pdfHeight;
+    }
   
-      while (heightLeft > 0) {
-        position -= pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
-        heightLeft -= pdfHeight;
-      }
+    const pdfData = pdf.output("datauristring").split(",")[1];
+    const mockId = userDetails.mockId;
   
-      const pdfData = pdf.output("datauristring").split(",")[1];
-      const mockId = userDetails.mockId;
-  
-      fetch("/api/save-pdf", {
+    try {
+      const res = await fetch("/api/save-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdfData, mockId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            alert("PDF saved successfully!");
+      });
+      
+      const { pdfBuffer, fileName, success } = await res.json();
+      
+      if (success) {
+        alert("PDF saved successfully!");
+      
+        setTimeout(() => {
+          sendEmail(mockId, pdfBuffer); // ✅ Pass buffer here
+        }, 30000);
+      } else {
+        alert("Failed to save PDF.");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    }
   
-            setTimeout(() => {
-              sendEmail(mockId);
-            }, 30000);
-          } else {
-            alert("Failed to save PDF.");
-          }
-        })
-        .catch((err) => console.error("Error:", err));
-  
-      pdf.save(`Interview_Feedback_Report_${mockId}.pdf`);
-    });
+    pdf.save(`Interview_Feedback_Report_${mockId}.pdf`);
   };
   
+  
+  
 
-  const sendEmail = async (mockId) => {
-    if (!userDetails || !mockId) {
-      alert("User details or Mock ID not found. Please try again later.");
+  const sendEmail = async (mockId, pdfBuffer) => {
+    if (!userDetails || !mockId || !pdfBuffer) {
+      alert("Missing user details, Mock ID, or PDF data.");
       return;
     }
   
-    // Online Image URL for HireSphere Logo
     const logoUrl = "https://hire-sphere-job-system-se48.vercel.app/HireSp.png";
   
-    // HTML Email Template
     const emailBody = `
       <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
         <div style="text-align: center;">
           <img src="${logoUrl}" alt="HireSphere Logo" width="150" style="margin-bottom: 15px;" />
         </div>
-        
-        <p>Greetings from <b>HireSphere Team</b>,</p>
   
+        <p>Greetings from <b>HireSphere Team</b>,</p>
         <p>Please find attached the <b>Feedback Report</b> for your Mock Interview.</p>
   
         <hr style="border: 1px solid #ddd;" />
-  
         <p><b>📌 Job Position:</b> ${userDetails.jobPosition}</p>
         <p><b>📌 Job Description:</b> ${userDetails.jobDesc}</p>
         <p><b>📌 Years of Experience:</b> ${userDetails.jobExperience}</p>
         <p><b>📌 Created By:</b> ${userDetails.createdBy}</p>
   
         <p>Your interview performance has been assessed, and detailed feedback is included in the attached report.</p>
-  
         <p>Thank you for using <b>HireSphere's AI Mock Interview</b> platform. Keep improving, and all the best for your career ahead!</p>
-  
         <p>Regards, <br/> <b>HireSphere Team</b></p>
       </div>
     `;
   
-    // Sending the Email with mockId
     const response = await fetch("/api/send-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -175,12 +172,13 @@ const Feedback = ({ params }) => {
         to: userDetails.createdBy,
         subject: "Your Mock Interview Feedback Report",
         html: emailBody,
-        mockId: mockId, // ✅ Send mockId to backend
+        mockId: mockId,
+        pdfBufferBase64: pdfBuffer, // ✅ Now it's defined properly
       }),
     });
   
     const data = await response.json();
-    console.log("Email Response:", data); // ✅ Debugging log
+    console.log("Email Response:", data);
   
     if (data.success) {
       alert("Email Sent Successfully with PDF!");
@@ -188,6 +186,7 @@ const Feedback = ({ params }) => {
       alert(`Failed to send email: ${data.message}`);
     }
   };
+  
   
   
   
