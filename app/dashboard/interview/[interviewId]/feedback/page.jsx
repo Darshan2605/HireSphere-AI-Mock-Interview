@@ -77,46 +77,56 @@ const Feedback = ({ params }) => {
       alert("Mock ID not found!");
       return;
     }
-
+  
     const reportElement = document.getElementById("feedback-report");
-
-    const canvas = await html2canvas(reportElement, { scale: 3 });
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdfWidth = 300;
-    const pdfHeight = 297;
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-    let heightLeft = imgHeight;
+  
+    // 🔧 Reduce scale for smaller image size (1.5 instead of 3)
+    const canvas = await html2canvas(reportElement, {
+      scale: 1.5,
+      useCORS: true, // Allow external assets
+    });
+  
+    // ⚡ Convert to lower-quality image
+    const imgData = canvas.toDataURL("image/jpeg", 0.5); // 50% JPEG compression
+  
+    // 📄 Smaller page size (A4)
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+  
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  
     let position = 0;
-
-    const pdf = new jsPDF("p", "mm", [pdfWidth, pdfHeight], true);
-    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+    let heightLeft = imgHeight;
+  
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
     heightLeft -= pdfHeight;
-
+  
     while (heightLeft > 0) {
       position -= pdfHeight;
       pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight, undefined, "FAST");
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
       heightLeft -= pdfHeight;
     }
-
+  
     const pdfData = pdf.output("datauristring").split(",")[1];
     const mockId = userDetails.mockId;
-
+  
     try {
       const res = await fetch("/api/save-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdfData, mockId }),
       });
-
+  
       const { pdfBuffer, fileName, success } = await res.json();
-
+  
       if (success) {
         alert("PDF saved successfully!");
-
+  
         setTimeout(() => {
-          sendEmail(mockId, pdfBuffer); // ✅ Pass buffer here
+          sendEmail(mockId, pdfBuffer);
         }, 30000);
       } else {
         alert("Failed to save PDF.");
@@ -124,9 +134,10 @@ const Feedback = ({ params }) => {
     } catch (err) {
       console.error("Error:", err);
     }
-
+  
     pdf.save(`Interview_Feedback_Report_${mockId}.pdf`);
   };
+  
 
   const sendEmail = async (mockId, pdfBuffer) => {
     if (!userDetails || !mockId || !pdfBuffer) {
