@@ -22,8 +22,8 @@ const QuestionsSection = ({ mockInterviewQuestion, activeQuestionIndex }) => {
               key={index}
               className={`p-3 rounded-lg text-xs md:text-sm text-center cursor-pointer transition-all duration-300 ${
                 activeQuestionIndex === index
-                  ? "bg-blue-700 text-white shadow-lg"
-                  : "bg-secondary text-primary hover:bg-blue-500 hover:text-white"
+                  ? "bg-[#053603] dark-green-clr-bg text-white shadow-lg"
+                  : "bg-[#2b8628] dark-green-clr-bg text-white hover:bg-[#1f671d] dark-green-clr-bg hover:text-white"
               }`}
               onClick={() => textToSpeech(question.question)}
             >
@@ -44,12 +44,12 @@ const QuestionsSection = ({ mockInterviewQuestion, activeQuestionIndex }) => {
         />
 
         {/* Note Section */}
-        <div className="border rounded-lg p-5 bg-blue-100 mt-10">
-          <h2 className="flex gap-2 items-center text-primary">
+        <div className="border rounded-lg p-5 bg-[#053603] dark-green-clr-bg mt-10">
+          <h2 className="flex gap-2 items-center text-white">
             <Lightbulb />
             <strong>Note:</strong>
           </h2>
-          <h2 className="text-sm text-primary my-2">
+          <h2 className="text-sm text-white my-2">
             {process.env.NEXT_PUBLIC_INFORMATION}
           </h2>
         </div>

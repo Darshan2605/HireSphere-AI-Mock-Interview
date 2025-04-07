@@ -69,7 +69,7 @@ const StartInterview = ({ params }) => {
             {activeQuestionIndex !== mockInterviewQuestion?.length - 1 && (
               <Button
                 onClick={() => setActiveQuestionIndex(activeQuestionIndex + 1)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                className="bg-[#053603] dark-green-clr-bg text-white px-4 py-2 rounded-lg"
               >
                 Next Question
               </Button>

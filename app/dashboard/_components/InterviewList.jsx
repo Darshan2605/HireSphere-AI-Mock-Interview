@@ -4,7 +4,7 @@ import { MockInterview } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import { desc, eq } from "drizzle-orm";
 import React, { useEffect, useState } from "react";
-import InterviewItemCard from "./InterviewItemCard"
+import InterviewItemCard from "./InterviewItemCard";
 
 const InterviewList = () => {
   const { user } = useUser();
@@ -21,19 +21,18 @@ const InterviewList = () => {
       )
       .orderBy(desc(MockInterview.id));
 
-    console.log(
-      "🚀 ~ file: InterviewList.jsx:14 ~ GetInterviewList ~ GetInterviewList:",
-      GetInterviewList
-    );
-    setInterviewList(result)
+    setInterviewList(result);
   };
   return (
     <div>
-      <h2 className="font-medium text-xl">Previous Mock Interview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 my-3">
-        {InterviewList&&InterviewList.map((interview,index)=>(
-            <InterviewItemCard interview={interview} key={index}/>
-        ))}
+      <h2 className="font-medium text-lg md:text-xl text-black">
+        Previous Mock Interviews
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 my-3">
+        {InterviewList &&
+          InterviewList.map((interview, index) => (
+            <InterviewItemCard interview={interview} key={index} />
+          ))}
       </div>
     </div>
   );

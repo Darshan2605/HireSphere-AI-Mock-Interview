@@ -1,88 +1,190 @@
 @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+@tailwind components;
+@tailwind utilities;
 
-  @layer base {
-    :root {
-      --background: 0 0% 100%;
-      --foreground: 0 0% 3.9%;
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* White background */
+    --foreground: 0 0% 20%; /* Dark gray text */
 
-      --card: 0 0% 100%;
-      --card-foreground: 0 0% 3.9%;
+    --card: 0 0% 96%; /* Light gray card background */
+    --card-foreground: 0 0% 20%; /* Dark gray text */
 
-      --popover: 0 0% 100%;
-      --popover-foreground: 0 0% 3.9%;
+    --primary: 220 90% 56%; /* Blue (#3b82f6) */
+    --primary-foreground: 0 0% 98%; /* White text */
 
-      --primary: 0 0% 9%;
-      --primary-foreground: 0 0% 98%;
+    --secondary: 220 80% 40%; /* Darker blue */
+    --secondary-foreground: 0 0% 98%; /* White text */
 
-      --secondary: 0 0% 96.1%;
-      --secondary-foreground: 0 0% 9%;
-
-      --muted: 0 0% 96.1%;
-      --muted-foreground: 0 0% 45.1%;
-
-      --accent: 0 0% 96.1%;
-      --accent-foreground: 0 0% 9%;
-
-      --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 0 0% 98%;
-
-      --border: 0 0% 89.8%;
-      --input: 0 0% 89.8%;
-      --ring: 0 0% 3.9%;
-
-      --radius: 0.5rem;
-    }
-
-    .dark {
-      --background: 0 0% 3.9%;
-      --foreground: 0 0% 98%;
-
-      --card: 0 0% 3.9%;
-      --card-foreground: 0 0% 98%;
-
-      --popover: 0 0% 3.9%;
-      --popover-foreground: 0 0% 98%;
-
-      --primary: 0 0% 98%;
-      --primary-foreground: 0 0% 9%;
-
-      --secondary: 0 0% 14.9%;
-      --secondary-foreground: 0 0% 98%;
-
-      --muted: 0 0% 14.9%;
-      --muted-foreground: 0 0% 63.9%;
-
-      --accent: 0 0% 14.9%;
-      --accent-foreground: 0 0% 98%;
-
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 0 0% 98%;
-
-      --border: 0 0% 14.9%;
-      --input: 0 0% 14.9%;
-      --ring: 0 0% 83.1%;
-    }
+    --radius: 12px; /* Default border radius */
   }
 
-  @layer base {
-    * {
-      @apply border-border;
-    }
-    body {
-      @apply bg-background text-foreground;
-    }
-    video {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-    
-    .feedback-window {
-      width: 100%;
-      max-width: 400px;
-      margin: 0 auto;
-      text-align: left;
-    }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
   }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Ensure all text elements have proper contrast */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--foreground); /* Ensure headers are visible */
+  }
+
+  p, span, div, li, a {
+    color: var(--foreground); /* Ensure general text is visible */
+  }
+
+  /* Override specific text colors for better contrast */
+  .text-primary {
+    color: hsl(var(--primary)); /* Blue */
+  }
+
+  .text-secondary {
+    color: hsl(var(--secondary)); /* Darker blue */
+  }
+
+  .text-muted {
+    color: #9ca3af; /* Light gray for muted text */
+  }
+
+  .text-error {
+    color: #ef4444; /* Bright red for error messages */
+  }
+
+  .text-success {
+    color: #10b981; /* Bright green for success messages */
+  }
+
+  /* Ensure links are visible */
+  a {
+    color: #60a5fa; /* Light blue for links */
+    text-decoration: underline;
+  }
+
+  a:hover {
+    color: #3b82f6; /* Brighter blue on hover */
+  }
+
+  video {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  .feedback-window {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  /* Futuristic Glow Effects */
+  .glow-text {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+      0 0 20px rgba(0, 123, 255, 0.6), 0 0 30px rgba(0, 123, 255, 0.4);
+  }
+
+  .glow-border {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(0, 123, 255, 0.2);
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .button-glow {
+    background-color: #053603;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .button-glow:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(5, 34, 0, 0.8),
+      0 0 25px rgba(33, 219, 13, 0.6);
+  }
+
+  .header {
+    background: #021501; /* Dark gray background */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  }
+  
+  .header a {
+    color: #9ca3af; /* Light gray for links */
+    transition: color 0.3s ease;
+  }
+  
+  .header a:hover {
+    color: #3b82f6; /* Bright blue on hover */
+  }
+
+  .bg-card {
+    background-color: hsl(var(--card)); /* Card background */
+    color: hsl(var(--card-foreground)); /* Card text */
+  }
+
+  .rounded-lg {
+    border-radius: var(--radius);
+  }
+
+  .rounded-xl {
+    border-radius: calc(var(--radius) * 1.5);
+  }
+
+  .shadow-lg {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark-green-clr
+  {
+    color: #053603;
+  }
+
+  .dark-green-clr-bg
+  {
+    background-color: #053603;
+  }
+
+  
+}

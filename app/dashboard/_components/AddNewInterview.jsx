@@ -89,10 +89,10 @@ function AddNewInterview() {
   return (
     <div>
       <div
-        className="p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-md cursor-pointer transition-all"
+        className="p-10 border rounded-lg hover:scale-105 hover:shadow-md cursor-pointer transition-all dark-green-clr-bg"
         onClick={() => setOpenDialog(true)}
       >
-        <h1 className="font-bold text-lg text-center">+ Add New</h1>
+        <h1 className="font-bold text-lg text-center text-white">+ Add New</h1>
       </div>
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="max-w-2xl">
@@ -140,7 +140,7 @@ function AddNewInterview() {
                 <Button type="button" variant="ghost" onClick={() => setOpenDialog(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="dark-green-clr-bg bg-[#053603]">
                   {loading ? (
                     <>
                       <LoaderCircle className="animate-spin" /> Generating from AI
