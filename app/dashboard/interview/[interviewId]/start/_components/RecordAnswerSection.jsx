@@ -53,10 +53,21 @@ const RecordAnswerSection = ({
   const UpdateUserAnswer = async (userAnswer) => {
     setLoading(true);
 
-    const feedbackPrompt =
-      `Question: ${mockInterviewQuestion[activeQuestionIndex]?.question}, ` +
-      `User Answer: ${userAnswer}, ` +
-      `Based on the question and answer, provide a short 3-5 line JSON with fields: rating and feedback (areas of improvement).`;
+    const feedbackPrompt = `
+Question: ${mockInterviewQuestion[activeQuestionIndex]?.question}
+
+User Answer: ${userAnswer}
+
+Provide feedback in this exact JSON format:
+
+{
+  "feedback": "Write a 3-4 line plain English feedback explaining areas of improvement.",
+  "rating": 1-10
+}
+
+Only return raw JSON — no markdown, code blocks, or extra text.
+`;
+
 
     try {
       const result = await chatSession.sendMessage(feedbackPrompt);
